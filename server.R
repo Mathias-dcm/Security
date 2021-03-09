@@ -99,5 +99,61 @@ server <- function(input, output) {
       topPorts
     })
     
+    
+    
+    
+    
+    ############ visualisation 
+    
+    
+    tab=as.matrix(table(df$ipsrc,df$action))
+    
+    c1=as.numeric(tab[,1])
+    c2=as.numeric(tab[,2])
+    
+    m=matrix(c(c1,c2), byrow = F, ncol = 2)
+    n=as.data.frame(m)
+    colnames(n)=c('DENY', 'PERMIT')
+    rownames(n)=rownames(tab)
+    IP_contact=n$DENY+n$PERMIT
+    bdd_visa=cbind(n,IP_contact)
+    
+    
+    #bdd_visa=bdd_visa[order(bdd_visa$IP_contact, decreasing = TRUE),]
+    
+    bdd_visa=bdd_visa[1:250,]
+    index=1:250
+    bdd_visa=cbind(bdd_visa,index)
+    
+    output$visa <- renderPlot({
+      
+      ggplot(bdd_visa, aes(index, DENY)) + geom_point(colour = "red", size = 1.5, shape=3)+   labs(x = " ", y = "y1") + geom_point(aes(index, PERMIT),size=1.5, colour="blue", shape=1)+geom_vline(xintercept=input$'k1', color = "green", size=1)
+      
+      
+      #  plot(bdd_visa$DENY[1:250],type="p", pch=3,col="red", ylab = "y1")
+      
+      #  lines(bdd_visa$PERMIT[1:250], type='p', col='blue')
+      #      ggplot(port, aes(x=dstport, y=n, fill = as.factor(dstport), label=dstport)) +
+      #        geom_bar(stat = "identity", position = "dodge", col= "black") + xlab("Port") + ylab("Nombre") +
+      #       coord_flip() + scale_fill_hue(c = sample(hues, 1)) + guides(fill=FALSE) +
+      #      geom_text(size = 3, position = position_stack(vjust = 0.5))
+    })    
+    
+    
+    
+    output$tabvisa  <- renderDataTable({
+      X <- bdd_visa[input$'k1',c("DENY","IP_contact")]
+      X
+    })
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   
 }
