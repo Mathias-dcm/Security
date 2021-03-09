@@ -1,0 +1,243 @@
+---
+title: "Untitled"
+author: "Cong Bang Huynh"
+date: "3/8/2021"
+output: word_document
+---
+
+
+
+```{r}
+# importation du fichier
+df = read.csv2("C:/Users/DELL/Desktop/Master SISE/logs_fw-3.csv", header=T, sep=";")
+
+print(nrow(df))
+print(head(df,40))
+```
+
+# Classement des règles les plus utilisées.
+
+
+```{r}
+length(unique(df$dstport))
+length(unique(df$proto))
+length(unique(df$action))
+```
+```{r}
+head(sort(table(df$policyid), decreasing = TRUE),12)
+```
+
+
+```{r}
+#création d'un tableau dynamique croisé
+policy<-sort(table(df$policyid), decreasing = TRUE)
+df_policy <-as.data.frame(policy)
+print(df_policy)
+
+barplot(df_policy$Freq, main="Histogramme des règles utilisés",
+xlab="Règle",
+ylab="Nombre de Hits",col=c("lavender","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1"))
+#on affiche les valeurs de notre graph
+#text(x = df_policy$Var1, y = 50000, label = df_policy$Freq, cex =1, pos=1.9)
+axis(1, at=df_policy$Var1, labels=df_policy$Var1,
+tick=FALSE, las=1, line=1, cex.axis=1)
+```
+
+
+
+
+
+
+
+
+# Histogramme représentant l’utilisation des différents protocoles présents
+
+
+```{r}
+#création d'un tableau dynamique croisé
+diff_proto_1<-table(df$proto)
+df_diff_proto_1 <-as.data.frame(diff_proto_1)
+
+
+barplot(df_diff_proto_1$Freq, main="Histogramme des protocoles utilisés",
+xlab="Protocoles",
+ylab="Nombre de Hits",col=c("lavender","lightcyan1"))
+#on affiche les valeurs de notre graph
+text(x = df_diff_proto_1$Var1, y = 50000, label = df_diff_proto_1$Freq, cex =1, pos=1.9)
+axis(1, at=df_diff_proto_1$Var1, labels=df_diff_proto_1$Var1,
+tick=FALSE, las=1, line=1, cex.axis=1)
+
+
+```
+
+# Top dix des règles les plus utilisées avec le protocole Udp
+
+
+
+```{r}
+# creation data frame avec protocole udp
+df_tcp=subset(df,df$proto == "UDP")
+# creation dataframe avec le frequence des regles et afficher le top cinq 
+df1=as.data.frame(head(sort(table(df_tcp$policyid), decreasing = TRUE),10))
+colnames(df1)=c("Policy-ID","Freq")
+print(df1)
+```
+
+
+
+```{r}
+# La représentation graphique des fréquences
+
+barplot(df1$Freq, main="Top dix des règles les plus utilisées avec le protocole Udp",
+xlab="Règle",
+ylab="La fréquence",col=c("lightcyan1","lightcyan1"))
+#on affiche les valeurs de notre graph
+text(x = df1$`Policy-ID`, y = 5000, label = df1$Freq, cex =1, pos=1.9)
+axis(1, at=df1$`Policy-ID`, labels=df1$`Policy-ID`,
+tick=FALSE, las=1, line=1, cex.axis=1)
+```
+
+
+
+
+# Top cinq des règles les plus utilisées avec le protocole Tcp.
+
+
+```{r}
+# creation data frame avec protocole tcp
+df_tcp=subset(df,df$proto == "TCP")
+# creation dataframe avec le frequence des regles et afficher le top cinq 
+df1=as.data.frame(head(sort(table(df_tcp$policyid), decreasing = TRUE),5))
+colnames(df1)=c("Policy-ID","Freq")
+print(df1)
+```
+
+
+```{r}
+# La représentation graphique des fréquences
+
+barplot(df1$Freq, main="Top cinq des règles les plus utilisées avec le protocole Tcp",
+xlab="Règle",
+ylab="La fréquence",col=c("lightcyan1","lightcyan1","lightcyan1","lightcyan1","lightcyan1"))
+#on affiche les valeurs de notre graph
+text(x = df1$`Policy-ID`, y = 50000, label = df1$Freq, cex =1, pos=1.9)
+axis(1, at=df1$`Policy-ID`, labels=df1$`Policy-ID`,
+tick=FALSE, las=1, line=1, cex.axis=1)
+```
+
+
+
+
+# Fournir un rapprochement des règles (rule id ) par rapport aux ports de destination et les actions. Cette analyse portera uniquement sur le protocole par défaut Tcp.
+
+
+
+```{r}
+# creation data frame avec protocole tcp
+df_tcp=subset(df,df$proto == "TCP")
+
+```
+
+
+
+
+```{r}
+# tableau croisé entre la variable action et la variable policyid
+tab=table(df_tcp$action,df_tcp$policyid)
+print(tab)
+```
+
+On constate que chaque règle est associé à un seul action. Les règles de l'action 'DENY' sont 1;2;3;4;5;13;16;17;18;999. Les règles de l'action 'PERMIT' sont 6 et 7. 
+
+
+
+```{r}
+# tableau croisé entre la variable portdst et la variable policyid à condition que action est "DENY"
+
+df_deny=subset(df_tcp, df_tcp$action=='DENY')
+
+
+tab1=table(df_deny$dstport,df_deny$policyid)
+print(tab1)
+
+```
+
+Cette table nous donne la fréquence des règles à chaque port donné et l'action est 'DENY'. Grâce à cette table, on peut deviner le règle associé à chaque port et chaque l'action. Par exemple, si le port est 22 et l'action est 'DENY', alors avec une fote chance, le règle sera 17.
+
+
+
+```{r}
+
+# tableau croisé entre la variable portdst et la variable policyid à condition que action est "PERMIT"
+
+df_permit=subset(df_tcp, df_tcp$action=='PERMIT')
+
+
+tab2=table(df_permit$dstport,df_permit$policyid)
+print(tab2)
+
+```
+
+
+Concernant le tableau ci-dessus, on a des décisions suivantes: Si le port est 22 et l'action est 'PERMIT', alors le règle est 7. Si le port est 80 ou 443 et l'action est 'PERMIT', alors le règle sera 6. 
+
+
+
+
+# Fournir des graphiques vus lors TD qui vous semblent adéquats à la sécurité des SI.
+
+
+
+```{r}
+head(df,40)
+```
+
+
+
+
+##################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
